@@ -1,21 +1,25 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include <WebServer.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 #include "html.h"
 #include "config.h"
 
 int sensor_analog = 0;
-int _moisture = 0;
+float _moisture = 0;
 bool isDry = false;
 
-WebServer server(80);
+AsyncWebServer server(80);
 
 void sendTelegram(String message)
 {
   if (WiFi.status() == WL_CONNECTED)
   {
     HTTPClient http;
-    String url = "https://api.telegram.org/bot" + String(BOT_TOKEN) + "/sendMessage?chat_id=" + String(CHAT_ID) + "&text=" + message;
+    String url = "https://api.telegram.org/bot" + String(BOT_TOKEN) +
+                 "/sendMessage?chat_id=" + String(CHAT_ID) +
+                 "&text=" + message;
+
     http.begin(url);
     int httpResponseCode = http.GET();
     http.end();
@@ -29,14 +33,37 @@ void sendTelegram(String message)
   }
 }
 
-void MainPage()
+void sendToLaravel(float moisture)
 {
-  server.send(200, "text/html", html_page);
-}
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    HTTPClient http;
+    http.begin(LARAVEL_API_URL + String("/moisture/log"));
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", "Bearer " + String(API_TOKEN));
 
-void SoilMoisture()
-{
-  server.send(200, "text/plain", String(_moisture));
+    String jsonBody = "{\"moisture_level\": " + String(moisture, 2) + "}";
+    int httpResponseCode = http.POST(jsonBody);
+
+    if (httpResponseCode > 0)
+    {
+      Serial.print("Laravel response code: ");
+      Serial.println(httpResponseCode);
+      String response = http.getString();
+      Serial.println("Response: " + response);
+    }
+    else
+    {
+      Serial.print("Error sending to Laravel: ");
+      Serial.println(httpResponseCode);
+    }
+
+    http.end();
+  }
+  else
+  {
+    Serial.println("WiFi not connected, cannot send data to Laravel.");
+  }
 }
 
 void setup()
@@ -55,27 +82,46 @@ void setup()
   }
 
   Serial.println();
-  Serial.println("Connected to WiFi!");
+  Serial.println("✅ Connected to WiFi!");
   Serial.print("Local IP: ");
   Serial.println(WiFi.localIP());
 
-  server.on("/", MainPage);
-  server.on("/readMoisture", SoilMoisture);
-  server.begin();
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "text/html", html_page); });
 
-  Serial.println("Web server started");
+  server.on("/readMoisture", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "text/plain", String(_moisture)); });
+
+  server.begin();
+  Serial.println("🌐 Async web server started");
 }
+
+unsigned long lastSend = 0;
+unsigned long lastSensorRead = 0;
 
 void loop()
 {
-  sensor_analog = analogRead(SENSOR_PIN);
-  _moisture = 100 - ((sensor_analog / 4095.0) * 100);
+  unsigned long now = millis();
 
-  Serial.print("Raw: ");
-  Serial.print(sensor_analog);
-  Serial.print(" | Moisture: ");
-  Serial.print(_moisture);
-  Serial.println("%");
+  if (now - lastSensorRead >= 500)
+  {
+    sensor_analog = analogRead(SENSOR_PIN);
+    _moisture = 100 - ((sensor_analog / 4095.0) * 100);
+
+    Serial.print("Raw: ");
+    Serial.print(sensor_analog);
+    Serial.print(" | Moisture: ");
+    Serial.print(_moisture);
+    Serial.println("%");
+
+    lastSensorRead = now;
+  }
+
+  if (now - lastSend >= SEND_INTERVAL)
+  {
+    sendToLaravel(_moisture);
+    lastSend = now;
+  }
 
   if (_moisture < DRY_THRESHOLD && !isDry)
   {
@@ -88,7 +134,4 @@ void loop()
     sendTelegram("✅ Tanah sudah kembali lembap! Kelembapan: " + String(_moisture) + "%");
     isDry = false;
   }
-
-  server.handleClient();
-  delay(1000);
 }
