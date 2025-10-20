@@ -12,8 +12,8 @@ This is a simple API project built with Laravel to log and retrieve moisture lev
 
 1.  **Clone this repository:**
     ```bash
-    git clone <your-repository-url>
-    cd moisture
+    git clone https://github.com/mohfer/moisture-monitoring.git
+    cd moisture-monitoring
     ```
 
 2.  **Navigate to the server directory:**
