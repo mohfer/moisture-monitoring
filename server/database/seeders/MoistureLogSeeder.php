@@ -13,14 +13,19 @@ class MoistureLogSeeder extends Seeder
      */
     public function run(): void
     {
-        $startDate = Carbon::now()->subDays(7);
-        $totalIntervals = (7 * 24 * 60) / 15;
+        $startDate = Carbon::now()->subDays(7)->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+
+        $interval = 15;
+        $totalIntervals = $startDate->diffInMinutes($endDate) / $interval;
 
         for ($i = 0; $i <= $totalIntervals; $i++) {
+            $timestamp = $startDate->copy()->addMinutes($i * $interval);
+
             MoistureLog::create([
                 'moisture_level' => rand(80, 100),
-                'created_at' => $startDate->copy()->addMinutes($i * 15),
-                'updated_at' => $startDate->copy()->addMinutes($i * 15),
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
             ]);
         }
     }
