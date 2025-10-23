@@ -9,12 +9,12 @@
 #define BOT_TOKEN "" // Change to your Telegram Bot Token
 #define CHAT_ID ""   // Change to your Telegram Chat ID
 
-// --- LARAVEL API CONFIG ---
-#define LARAVEL_API_URL "" // Change to your Laravel API URL
-#define API_TOKEN ""       // Token from Laravel API
+// --- EXPRESS API CONFIG ---
+#define EXPRESS_API_URL "" // Change to your Express API URL
+#define JWT ""             // JWT token for Express API authentication
 
 // --- SEND INTERVAL ---
-#define SEND_INTERVAL 1000 // Interval to send data to Laravel (in milliseconds)
+#define SEND_INTERVAL 1000 // Interval to send data to Express (in milliseconds)
 
 // --- SENSOR CONFIGURATION ---
 #define SENSOR_PIN 33    // Pin ADC for humidity sensor

@@ -33,28 +33,28 @@ void sendTelegram(String message)
   }
 }
 
-void sendToLaravel(float moisture)
+void sendToExpress(float moisture)
 {
   if (WiFi.status() == WL_CONNECTED)
   {
     HTTPClient http;
-    http.begin(LARAVEL_API_URL + String("/moisture/log"));
+    http.begin(EXPRESS_API_URL + String("/moisture/logs/log"));
     http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", "Bearer " + String(API_TOKEN));
+    http.addHeader("Authorization", "Bearer " + String(JWT));
 
     String jsonBody = "{\"moisture_level\": " + String(moisture, 2) + "}";
     int httpResponseCode = http.POST(jsonBody);
 
     if (httpResponseCode > 0)
     {
-      Serial.print("Laravel response code: ");
+      Serial.print("Express response code: ");
       Serial.println(httpResponseCode);
       String response = http.getString();
       Serial.println("Response: " + response);
     }
     else
     {
-      Serial.print("Error sending to Laravel: ");
+      Serial.print("Error sending to Express: ");
       Serial.println(httpResponseCode);
     }
 
@@ -62,7 +62,7 @@ void sendToLaravel(float moisture)
   }
   else
   {
-    Serial.println("WiFi not connected, cannot send data to Laravel.");
+    Serial.println("WiFi not connected, cannot send data to Express.");
   }
 }
 
@@ -119,7 +119,7 @@ void loop()
 
   if (now - lastSend >= SEND_INTERVAL)
   {
-    sendToLaravel(_moisture);
+    sendToExpress(_moisture);
     lastSend = now;
   }
 

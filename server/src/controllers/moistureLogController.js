@@ -36,9 +36,27 @@ exports.getTodayLogs = async (req, res) => {
             order: [['createdAt', 'ASC']],
         });
 
+        const stats = logs.length
+            ? {
+                latest: logs[logs.length - 1].moisture_level,
+                average: parseFloat(
+                    (logs.reduce((sum, log) => sum + log.moisture_level, 0) / logs.length).toFixed(2)
+                ),
+                min: Math.min(...logs.map(log => log.moisture_level)),
+                max: Math.max(...logs.map(log => log.moisture_level)),
+                count: logs.length,
+            }
+            : {
+                latest: null,
+                average: null,
+                min: null,
+                max: null,
+                count: 0,
+            };
+
         return sendResponse(
             res,
-            logs,
+            { logs, stats },
             logs.length ? 'Moisture logs retrieved successfully' : 'No moisture logs found'
         );
     } catch (error) {
@@ -63,9 +81,27 @@ exports.getThreeDayLogs = async (req, res) => {
             order: [['createdAt', 'ASC']],
         });
 
+        const stats = logs.length
+            ? {
+                latest: logs[logs.length - 1].moisture_level,
+                average: parseFloat(
+                    (logs.reduce((sum, log) => sum + log.moisture_level, 0) / logs.length).toFixed(2)
+                ),
+                min: Math.min(...logs.map(log => log.moisture_level)),
+                max: Math.max(...logs.map(log => log.moisture_level)),
+                count: logs.length,
+            }
+            : {
+                latest: null,
+                average: null,
+                min: null,
+                max: null,
+                count: 0,
+            };
+
         return sendResponse(
             res,
-            logs,
+            { logs, stats },
             logs.length ? 'Moisture logs retrieved successfully' : 'No moisture logs found'
         );
     } catch (error) {
@@ -90,9 +126,27 @@ exports.getSevenDayLogs = async (req, res) => {
             order: [['createdAt', 'ASC']],
         });
 
+        const stats = logs.length
+            ? {
+                latest: logs[logs.length - 1].moisture_level,
+                average: parseFloat(
+                    (logs.reduce((sum, log) => sum + log.moisture_level, 0) / logs.length).toFixed(2)
+                ),
+                min: Math.min(...logs.map(log => log.moisture_level)),
+                max: Math.max(...logs.map(log => log.moisture_level)),
+                count: logs.length,
+            }
+            : {
+                latest: null,
+                average: null,
+                min: null,
+                max: null,
+                count: 0,
+            };
+
         return sendResponse(
             res,
-            logs,
+            { logs, stats },
             logs.length ? 'Moisture logs retrieved successfully' : 'No moisture logs found'
         );
     } catch (error) {
@@ -106,9 +160,28 @@ exports.getAllDaysLogs = async (req, res) => {
             attributes: ['id', 'moisture_level', 'createdAt'],
             order: [['createdAt', 'ASC']],
         });
+
+        const stats = logs.length
+            ? {
+                latest: logs[logs.length - 1].moisture_level,
+                average: parseFloat(
+                    (logs.reduce((sum, log) => sum + log.moisture_level, 0) / logs.length).toFixed(2)
+                ),
+                min: Math.min(...logs.map(log => log.moisture_level)),
+                max: Math.max(...logs.map(log => log.moisture_level)),
+                count: logs.length,
+            }
+            : {
+                latest: null,
+                average: null,
+                min: null,
+                max: null,
+                count: 0,
+            };
+
         return sendResponse(
             res,
-            logs,
+            { logs, stats },
             logs.length ? 'Moisture logs retrieved successfully' : 'No moisture logs found'
         );
     } catch (error) {

@@ -6,10 +6,21 @@ function formatTick(ts, range) {
     try {
         const d = new Date(ts)
         if (isNaN(d)) return ts
+
+        const base = { timeZone: 'Asia/Jakarta' }
         if (range === 'today') {
-            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            return new Intl.DateTimeFormat('id-ID', {
+                ...base,
+                hour: '2-digit',
+                minute: '2-digit',
+            }).format(d)
         }
-        return d.toLocaleDateString()
+        return new Intl.DateTimeFormat('id-ID', {
+            ...base,
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+        }).format(d)
     } catch {
         return ts
     }
@@ -17,10 +28,14 @@ function formatTick(ts, range) {
 
 export default function LineMoistureChart({ logs = [], loading, range = 'today' }) {
     const data = useMemo(() => {
-        return logs.map((l) => ({
-            time: l.created_at,
-            moisture: Number(l.moisture_level),
-        }))
+        return (Array.isArray(logs) ? logs : []).map((l) => {
+            const t = l.createdAt ?? l.created_at
+            const d = t ? new Date(t) : null
+            return {
+                time: d && !isNaN(d) ? d.toISOString() : t ?? '',
+                moisture: Number(l.moisture_level),
+            }
+        })
     }, [logs])
 
     return (
@@ -49,7 +64,19 @@ export default function LineMoistureChart({ logs = [], loading, range = 'today' 
                                 <ChartTooltip
                                     content={
                                         <ChartTooltipContent
-                                            labelFormatter={(v) => new Date(v).toLocaleString()}
+                                            labelFormatter={(v) => {
+                                                const d = new Date(v)
+                                                if (isNaN(d)) return String(v)
+                                                return new Intl.DateTimeFormat('id-ID', {
+                                                    timeZone: 'Asia/Jakarta',
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: '2-digit',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                    second: '2-digit',
+                                                }).format(d)
+                                            }}
                                             formatter={(value) => [`${value}%`, 'Moisture']}
                                         />
                                     }

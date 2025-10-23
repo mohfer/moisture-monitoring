@@ -12,10 +12,6 @@ exports.login = async (req, res) => {
 
         const user = await User.findOne({
             where: { email }
-        }, {
-            attributes: ['id', 'name', 'email']
-        }, {
-            raw: true
         });
 
         if (!user) return sendError(res, 'User not found', 404);
@@ -23,9 +19,11 @@ exports.login = async (req, res) => {
         const isPasswordValid = await user.validatePassword(password);
         if (!isPasswordValid) return sendError(res, 'Invalid password', 401);
 
-        const token = generateToken(user);
+        const safeUser = { id: user.id, name: user.name, email: user.email };
 
-        return sendResponse(res, { user, token }, 'Login successful');
+        const token = generateToken(safeUser);
+
+        return sendResponse(res, { user: safeUser, token }, 'Login successful');
     } catch (error) {
         return sendError(res, error.message);
     }
