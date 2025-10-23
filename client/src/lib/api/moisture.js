@@ -27,7 +27,7 @@ function mapRangeToPath(range) {
 export async function fetchLogs(range = 'today') {
     const path = mapRangeToPath(range)
     const base = getBaseUrl()
-    const url = `${base}/api/moisture/${path}`
+    const url = `${base}/api/moisture/logs/${path}`
 
     const headers = { 'Content-Type': 'application/json' }
     if (bearerToken) headers['Authorization'] = `Bearer ${bearerToken}`
