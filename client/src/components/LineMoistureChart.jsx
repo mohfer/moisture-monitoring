@@ -60,6 +60,7 @@ export default function LineMoistureChart({ logs = [], loading, range = 'today' 
                                 <YAxis
                                     domain={[0, 100]}
                                     tick={{ fill: 'currentColor', fontSize: 12, opacity: 0.7 }}
+                                    tickFormatter={(value) => `${value}%`}
                                 />
                                 <ChartTooltip
                                     content={
