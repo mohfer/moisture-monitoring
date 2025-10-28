@@ -98,7 +98,7 @@ function App() {
             <h1 className="text-xl font-semibold">Moisture Monitoring</h1>
             {iotStatus.lastActivity && (
               <span className="text-xs text-muted-foreground">
-                Last activity: {new Date(iotStatus.lastActivity).toLocaleTimeString()}
+                Last activity: {new Date(iotStatus.lastActivity).toLocaleTimeString('id-ID', { hour12: false })}
               </span>
             )}
           </div>
