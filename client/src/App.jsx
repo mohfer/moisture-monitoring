@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from './components/ui/select'
 import LineMoistureChart from './components/LineMoistureChart'
 import StatsCards from './components/StatsCards'
-import { fetchLogs, setToken } from './lib/api/moisture'
+import { fetchLogs, setToken, fetchIoTStatus } from './lib/api/moisture'
 
 function App() {
   const [range, setRange] = useState('today')
@@ -11,12 +11,42 @@ function App() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [iotStatus, setIotStatus] = useState({ isOnline: false, lastActivity: null })
 
-  const pollInterval = import.meta.env.VITE_POLL_INTERVAL_MS || 10000
+  const pollInterval = import.meta.env.VITE_POLL_INTERVAL_MS || 5000
 
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (token) setToken(token)
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    let inFlight = false
+
+    const loadStatus = async () => {
+      if (inFlight) return
+      inFlight = true
+      try {
+        const status = await fetchIoTStatus()
+        if (active) {
+          setIotStatus(status)
+        }
+      } catch {
+        if (active) {
+          setIotStatus({ isOnline: false, lastActivity: null })
+        }
+      } finally {
+        inFlight = false
+      }
+    }
+
+    loadStatus()
+    const id = setInterval(loadStatus, 1000)
+    return () => {
+      active = false
+      clearInterval(id)
+    }
   }, [])
 
   useEffect(() => {
@@ -58,8 +88,21 @@ function App() {
 
   return (
     <div className="container mx-auto max-w-5xl p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Moisture Monitoring</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className={`w-2.5 h-2.5 rounded-full shrink-0 ${iotStatus.isOnline ? 'bg-green-500' : 'bg-red-500'}`}
+            title={iotStatus.isOnline ? 'IoT Online' : 'IoT Offline'}
+          />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+            <h1 className="text-xl font-semibold">Moisture Monitoring</h1>
+            {iotStatus.lastActivity && (
+              <span className="text-xs text-muted-foreground">
+                Last activity: {new Date(iotStatus.lastActivity).toLocaleTimeString()}
+              </span>
+            )}
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Range</span>
           <Select value={range} onValueChange={setRange}>

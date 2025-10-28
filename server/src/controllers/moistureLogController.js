@@ -188,3 +188,34 @@ exports.getAllDaysLogs = async (req, res) => {
         return sendError(res, error.message);
     }
 };
+
+exports.getIoTStatus = async (req, res) => {
+    try {
+        const lastLog = await MoistureLog.findOne({
+            attributes: ['createdAt'],
+            order: [['createdAt', 'DESC']],
+        });
+
+        if (!lastLog) {
+            return sendResponse(res, {
+                isOnline: false,
+                lastActivity: null,
+                message: 'No activity recorded yet'
+            }, 'IoT status retrieved');
+        }
+
+        const lastActivityTime = new Date(lastLog.createdAt);
+        const now = new Date();
+        const diffSeconds = (now - lastActivityTime) / 1000;
+
+        const isOnline = diffSeconds <= 2;
+
+        return sendResponse(res, {
+            isOnline,
+            lastActivity: lastActivityTime.toISOString(),
+            secondsSinceLastActivity: parseFloat(diffSeconds.toFixed(2))
+        }, 'IoT status retrieved');
+    } catch (error) {
+        return sendError(res, error.message);
+    }
+};

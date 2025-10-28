@@ -40,3 +40,19 @@ export async function fetchLogs(range = 'today') {
     const json = await res.json()
     return json.data
 }
+
+export async function fetchIoTStatus() {
+    const base = getBaseUrl()
+    const url = `${base}/api/moisture/logs/status`
+
+    const headers = { 'Content-Type': 'application/json' }
+    if (bearerToken) headers['Authorization'] = `Bearer ${bearerToken}`
+
+    const res = await fetch(url, { headers })
+    if (!res.ok) {
+        const text = await res.text()
+        throw new Error(`API ${res.status}: ${text}`)
+    }
+    const json = await res.json()
+    return json.data
+}
